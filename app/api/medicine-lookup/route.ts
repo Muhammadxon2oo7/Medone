@@ -58,7 +58,7 @@ SAFETY RULES:
       system: systemPrompt,
       prompt: `Provide educational information about: ${medicineName}`,
       temperature: 0.2,
-      max_tokens: 350,
+      
     })
 
     const result = JSON.parse(text)
