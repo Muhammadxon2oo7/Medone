@@ -10,7 +10,6 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Health Assistant | Sog'liq Yordamchisi",
   description: "AI-powered health assistant for symptoms, first aid, and medicine information",
-  generator: "v0.app",
   icons: {
     icon: [
       {
