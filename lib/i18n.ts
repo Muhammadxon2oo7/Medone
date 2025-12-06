@@ -12,6 +12,7 @@ export const translations = {
       disclaimer: "Ogohlantirish",
       emergency: "103",
       responsible: "Mas'uliyat",
+      f2f: "Mutaxassisga murojaat"
     },
 
     full: {
@@ -140,6 +141,8 @@ export const translations = {
       disclaimer: "Важно",
       emergency: "103",
       responsible: "Ответственность",
+      f2f: "Консультация специалиста"
+
     },
 
     full: {
@@ -263,6 +266,7 @@ export const translations = {
       disclaimer: "Important",
       emergency: "103",
       responsible: "Responsibility",
+      f2f: "Consult a Specialist"
     },
 
     full: {

@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { type Language, getTranslation } from "@/lib/i18n";
+import { type Language } from '@/lib/i18n'
 import { Send, Sparkles } from "lucide-react";
 
 interface Message {
@@ -50,13 +49,13 @@ export function SymptomChecker({ language }: SymptomCheckerProps) {
     scrollToBottom();
   }, [messages, loading]);
 
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || loading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: input.trim(),
+      content: text.trim(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -68,9 +67,12 @@ export function SymptomChecker({ language }: SymptomCheckerProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: input,
+          message: text,
           language,
-          messages: messages.map((m) => ({ role: m.role, content: m.content })),
+          messages: [...messages, userMessage].map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
         }),
       });
 
@@ -97,20 +99,37 @@ export function SymptomChecker({ language }: SymptomCheckerProps) {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(input);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
+  };
+
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-180px)] md:max-h-[680px] bg-card rounded-xl border border-border overflow-hidden shadow-xl">
-      {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b bg-primary/5 shrink-0">
+    /* GLASS CARD — iOS style */
+    <div className="flex flex-col h-full max-h-[calc(100vh-180px)] md:max-h-[680px] overflow-hidden rounded-3xl shadow-2xl
+                    bg-clip-padding backdrop-blur-2xl
+                    bg-white/30 border border-white/40
+                    supports-[backdrop-filter]:bg-white/20 supports-[backdrop-filter]:border-white/30">
+      
+      {/* Header — Glass */}
+      <div className="flex items-center gap-3 p-4  border-white/30 bg-white/40 backdrop-blur-xl shrink-0 border-b">
         <Sparkles className="h-5 w-5 text-primary" />
-        <p className="font-semibold">Sog‘liq maslahatchisi</p>
+        <p className="font-semibold text-foreground">Sog‘liq maslahatchisi</p>
       </div>
 
-      <ScrollArea className="flex-1 overflow-y-auto">
+      <ScrollArea className="flex-1">
         <div className="p-4 space-y-4 min-h-full">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full min-h-96 text-center">
-              <div className="text-6xl mb-4">Sog‘liq</div>
-              <p className="text-lg font-medium mb-2">
+              <div className="text-6xl mb-4 text-foreground/90">Sog‘liq</div>
+              <p className="text-lg font-medium mb-2 text-foreground/80">
                 Salom! Qanday yordam bera olaman?
               </p>
               <div className="w-full max-w-md space-y-3 mt-8">
@@ -118,8 +137,10 @@ export function SymptomChecker({ language }: SymptomCheckerProps) {
                   <Button
                     key={i}
                     variant="secondary"
-                    className="w-full justify-start text-left h-auto py-3 px-4 text-sm"
-                    onClick={() => setInput(q)}
+                    className="w-full justify-start text-left h-auto py-3 px-4 text-sm
+                               bg-primary/40 backdrop-blur-md border border-white/40
+                               hover:bg-primary/60 transition-all duration-200"
+                    onClick={() => sendMessage(q)}
                   >
                     {q}
                   </Button>
@@ -136,11 +157,11 @@ export function SymptomChecker({ language }: SymptomCheckerProps) {
                   }`}
                 >
                   <div
-                    className={`max-w-[85%] px-4 py-3 rounded-2xl shadow-sm break-words ${
-                      msg.role === "user"
+                    className={`max-w-[85%] px-4 py-3 rounded-2xl shadow-sm break-words
+                      ${msg.role === "user"
                         ? "bg-primary text-primary-foreground"
-                        : "bg-muted border border-border"
-                    }`}
+                        : "bg-white/60 backdrop-blur-md border border-white/40 text-foreground"
+                      }`}
                   >
                     <p className="text-sm leading-relaxed">{msg.content}</p>
                   </div>
@@ -149,7 +170,7 @@ export function SymptomChecker({ language }: SymptomCheckerProps) {
 
               {loading && (
                 <div className="flex justify-start">
-                  <div className="bg-muted border px-4 py-3 rounded-2xl flex items-center gap-3">
+                  <div className="bg-white/60 backdrop-blur-md border border-white/40 px-4 py-3 rounded-2xl flex items-center gap-3">
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
                       <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:150ms]" />
@@ -166,27 +187,28 @@ export function SymptomChecker({ language }: SymptomCheckerProps) {
         </div>
       </ScrollArea>
 
-      <div className="border-t border-border bg-card p-4 shrink-0">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSend();
-          }}
-          className="flex gap-2"
-        >
+      {/* Input — Glass iOS style */}
+      <div className="border-t border-white/30 bg-white/40 backdrop-blur-xl p-4 shrink-0">
+        <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
-            placeholder="Xabaringizni yozing..."
+            placeholder="Xabaringizni yozing... (Enter = yuborish)"
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={loading}
-            className="h-12 text-base"
+            className="h-12 text-base
+                       bg-white/50 backdrop-blur-md border border-white/50
+                       placeholder:text-muted-foreground/70
+                       focus-visible:ring-2 focus-visible:ring-primary/40
+                       focus-visible:border-primary/40
+                       text-foreground"
             autoFocus
           />
           <Button
             type="submit"
             disabled={loading || !input.trim()}
             size="icon"
-            className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90"
+            className="h-12 w-12  bg-primary hover:bg-primary/90 shadow-lg transition-all hover:scale-105"
           >
             <Send className="h-5 w-5" />
           </Button>

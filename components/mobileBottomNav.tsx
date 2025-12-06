@@ -1,12 +1,14 @@
 
 "use client"
-import { MessageCircle, Pill, Info, AlertTriangle } from "lucide-react"
+import { MessageCircle, Pill, Info, AlertTriangle, UserIcon } from "lucide-react"
 
 const tabs = [
   { id: "symptom", icon: MessageCircle, label: "tab.symptom" },
   { id: "medicine", icon: Pill, label: "tab.medicine" },
   { id: "disclaimer", icon: Info, label: "tab.disclaimer" },
   { id: "emergency", icon: AlertTriangle, label: "103", critical: true },
+  { id: "f2f" as const, icon: UserIcon, label: "tab.f2f" },
+  
 ]
 
 interface MobileBottomNavProps {
@@ -18,7 +20,7 @@ interface MobileBottomNavProps {
 export function MobileBottomNav({ activeTab, onTabChange, t }: MobileBottomNavProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-200 z-50">
-      <div className="grid grid-cols-4 py-2">
+      <div className="grid grid-cols-5 py-2">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id

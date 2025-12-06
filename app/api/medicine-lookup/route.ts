@@ -205,7 +205,6 @@ JSON format:
       })
     }
 
-    // Agar tasodifan ```json ... ``` bilan kelsa — tozalab yuboramiz
     if (raw.startsWith("```")) {
       raw = raw.replace(/^```[a-zA-Z]*\n?/, "").replace(/```$/, "").trim()
     }
@@ -215,7 +214,6 @@ JSON format:
     try {
       medicine = JSON.parse(raw)
 
-      // Fallback name, agar model nomni bo'sh tashlab yuborsa
       if (!medicine.name) {
         medicine.name = medicineName
       }
@@ -227,7 +225,6 @@ JSON format:
     } catch (e) {
       console.error("JSON parse xatosi (medicine lookup):", e, raw)
 
-      // JSON bo'lmay qolsa ham, hech bo'lmasa bitta blok qaytaramiz
       return NextResponse.json({
         found: true,
         medicine: {
