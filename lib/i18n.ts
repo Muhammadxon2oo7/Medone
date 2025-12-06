@@ -67,7 +67,7 @@ export const translations = {
 
       final: "Sog‘lig‘ingiz – eng qimmat narsa. Uni hech qachon xavf ostiga qo‘ymang.",
       bold: "Shifokor – sizning eng yaxshi do‘stingiz!",
-      footer: "Ushbu ilova O‘zbekiston Sog‘liqni saqlash vazirligi tomonidan tasdiqlanmagan.\nBarcha huquqlar himoyalangan © 2025"
+      footer: "Ushbu ilova O‘zbekiston Sog‘liqni saqlash vazirligi tomonidan tasdiqlanmagan.\nBarcha huquqlar himoyalangan © 2025 \ndasturchi: Muhammadxon.uz"
     },
 
  
