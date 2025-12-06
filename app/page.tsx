@@ -10,16 +10,28 @@ import { getTranslation, type Language } from "@/lib/i18n";
 import { AppHeader } from "@/components/header";
 import { MobileBottomNav } from "@/components/mobileBottomNav";
 import { DisclaimerPage } from "@/components/DisclaimerPage";
+import ReactLenis from "lenis/react";
 
 export default function Home() {
   const [language, setLanguage] = useState<Language>("uz");
   const [activeTab, setActiveTab] = useState<
-    "symptom" | "medicine" | "disclaimer" | "emergency" | "responsible"
+    "symptom" | "medicine" | "disclaimer" | "emergency" 
   >("symptom");
 
   const t = (key: string) => getTranslation(language, key);
 
   return (
+    <ReactLenis
+          root  
+          options={{
+            smoothWheel: true,     
+            
+            lerp: 0.07,          
+            duration: 1.2,
+            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),  
+            autoRaf: true,          
+          }}
+        >
     <>
       <AppHeader
         language={language}
@@ -80,5 +92,8 @@ export default function Home() {
         </div>
       </div>
     </>
+
+        </ReactLenis>
+
   );
 }

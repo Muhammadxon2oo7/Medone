@@ -83,7 +83,10 @@ export default function RootLayout({
   return (
     <html lang="uz" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
-        {children}
+        
+{children}
+        
+        
         <Analytics />
       </body>
     </html>
