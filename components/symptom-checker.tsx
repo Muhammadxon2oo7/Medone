@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { type Language } from '@/lib/i18n'
+import { type Language } from "@/lib/i18n";
 import { Send, Sparkles } from "lucide-react";
 
 interface Message {
@@ -112,13 +112,12 @@ export function SymptomChecker({ language }: SymptomCheckerProps) {
   };
 
   return (
-    /* GLASS CARD — iOS style */
-    <div className="flex flex-col h-full max-h-[calc(100vh-180px)] md:max-h-[680px] overflow-hidden rounded-3xl shadow-2xl
+    <div
+      className="flex flex-col h-full max-h-[calc(100vh-180px)] md:max-h-[680px] overflow-hidden rounded-3xl shadow-2xl
                     bg-clip-padding backdrop-blur-2xl
                     bg-white/30 border border-white/40
-                    supports-[backdrop-filter]:bg-white/20 supports-[backdrop-filter]:border-white/30">
-      
-      {/* Header — Glass */}
+                    supports-[backdrop-filter]:bg-white/20 supports-[backdrop-filter]:border-white/30"
+    >
       <div className="flex items-center gap-3 p-4  border-white/30 bg-white/40 backdrop-blur-xl shrink-0 border-b">
         <Sparkles className="h-5 w-5 text-primary" />
         <p className="font-semibold text-foreground">Sog‘liq maslahatchisi</p>
@@ -158,9 +157,10 @@ export function SymptomChecker({ language }: SymptomCheckerProps) {
                 >
                   <div
                     className={`max-w-[85%] px-4 py-3 rounded-2xl shadow-sm break-words
-                      ${msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-white/60 backdrop-blur-md border border-white/40 text-foreground"
+                      ${
+                        msg.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-white/60 backdrop-blur-md border border-white/40 text-foreground"
                       }`}
                   >
                     <p className="text-sm leading-relaxed">{msg.content}</p>
@@ -187,7 +187,6 @@ export function SymptomChecker({ language }: SymptomCheckerProps) {
         </div>
       </ScrollArea>
 
-      {/* Input — Glass iOS style */}
       <div className="border-t border-white/30 bg-white/40 backdrop-blur-xl p-4 shrink-0">
         <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
