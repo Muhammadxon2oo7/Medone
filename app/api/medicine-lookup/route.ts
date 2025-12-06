@@ -1,80 +1,249 @@
-import { searchMedicines } from "@/lib/medicines-db"
-import type { Language } from "@/lib/i18n"
-import { generateText } from "ai"
+// app/api/medicine-lookup/route.ts
+import { NextRequest, NextResponse } from "next/server"
 
-export async function POST(request: Request) {
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+
+if (!GEMINI_API_KEY) {
+  console.error("GEMINI_API_KEY .env.local faylda yo‘q!")
+}
+
+interface Medicine {
+  name: string
+  usedFor: string
+  sideEffects: string
+  precautions: string
+  disclaimer?: string
+}
+
+export async function POST(request: NextRequest) {
+  if (!GEMINI_API_KEY) {
+    return NextResponse.json(
+      { response: "Server xatosi: API kalit topilmadi." },
+      { status: 500 }
+    )
+  }
+
   try {
-    const { medicineName, language } = await request.json()
+    const { medicineName, language = "uz" } = await request.json()
 
-    const dbResults = searchMedicines(medicineName)
-
-    if (dbResults.length > 0) {
-      const medicine = dbResults[0]
-      const info = medicine.info[language as Language] || medicine.info.en
-
-      const disclaimer =
-        language === "uz"
-          ? "\n\n⚠️ ESLATMA: Bu ta'lim ma'lumatdir. Dori qabul qilishdan oldin doktor yoki fаrmaceut bilan maslahat qiling."
-          : language === "ru"
-            ? "\n\n⚠️ ВНИМАНИЕ: Это образовательная информация. Проконсультируйтесь с врачом или фармацевтом перед приемом."
-            : "\n\n⚠️ DISCLAIMER: This is educational information. Consult a doctor or pharmacist before taking any medicine."
-
-      return Response.json({
-        found: true,
-        medicine: {
-          name: medicine.names[language as Language] || medicine.names.en,
-          usedFor: info.usedFor + disclaimer,
-          sideEffects: info.sideEffects,
-          precautions: info.precautions,
-        },
+    if (!medicineName?.trim()) {
+      return NextResponse.json({
+        found: false,
+        response: "Dori nomi bo‘sh bo‘lmasligi kerak.",
       })
     }
 
-    const langName = language === "uz" ? "Uzbek" : language === "ru" ? "Russian" : "English"
+    const baseDisclaimerUz =
+      "Bu umumiy ma’lumot. Shifokor yoki farmatsevt maslahatini hech qachon almashtirmaydi. Dori qabul qilishdan oldin albatta mutaxassis bilan maslahatlashing. Jiddiy holatlarda darhol 103 chaqiring!"
 
-    const systemPrompt = `You are a medicine information specialist. Provide factual, general information about medicines in ${langName}.
+    const baseDisclaimerRu =
+      "Это общая информация и не заменяет консультацию врача или фармацевта. Перед приёмом любых лекарств обязательно проконсультируйтесь со специалистом. При серьёзных симптомах — срочно вызывайте 103!"
 
-IMPORTANT: You provide EDUCATIONAL information only, NOT medical advice.
+    const baseDisclaimerEn =
+      "This is general information only and does not replace advice from a doctor or pharmacist. Always consult a healthcare professional before taking any medicine. In serious cases, call emergency services immediately!"
 
-For any requested medicine, respond with ONLY a valid JSON object (no other text) with this exact format:
+    const disclaimer =
+      language === "uz"
+        ? baseDisclaimerUz
+        : language === "ru"
+        ? baseDisclaimerRu
+        : baseDisclaimerEn
+
+    const commonRules =
+      "You are a health information assistant, NOT a doctor. You must NEVER provide exact dosage (mg, ml, how many times per day, duration of treatment) or prescribe treatment. Only give high-level, educational information."
+
+    const userPrompt =
+      language === "uz"
+        ? `
+${commonRules}
+
+"${medicineName}" dorisi haqida umumiy MA’LUMOT bering.
+
+Struktura bo‘yicha tushuntiring (lekin javobni faqat JSON formatida qaytaring):
+
+1. Umumiy ta’rif (bu qanday dori, qaysi guruhga kiradi)
+2. Asosiy qo‘llanilish sohasi (qaysi kasallik/simptomlar uchun odatda ishlatiladi)
+3. Qanday ishlaydi (oddiy, tushunarli tilda)
+4. Odatdagi keng tarqalgan yon ta’sirlari (faqat misollar, % yoki aniq sonlar shart emas)
+5. Ogohlantirishlar va ehtiyot choralar (masalan: homiladorlik, allergiya, surunkali kasalliklar va hokazo bo‘yicha umumiy tavsiyalar)
+6. Oxirida ogohlantirish: "${disclaimer}"
+
+MUHIM:
+- DOZA, nechta tabletka, necha marta ichish, necha kun ichish kabi aniq ma’lumotlarni YOZMANG.
+- Retsept yozmang.
+- Javobingiz faqat JSON bo‘lsin, izohlar YO‘Q, markdown YO‘Q, matn YO‘Q.
+
+JSON format aynan shunday bo‘lsin:
 
 {
-  "found": true/false,
-  "medicine": {
-    "name": "Official medicine name",
-    "usedFor": "General conditions it is commonly used for",
-    "sideEffects": "Common side effects",
-    "precautions": "General precautions and warnings"
-  }
+  "name": "Dori nomi",
+  "usedFor": "• band1\\n• band2 ...",
+  "sideEffects": "• band1\\n• band2 ...",
+  "precautions": "• band1\\n• band2 ...",
+  "disclaimer": "${disclaimer}"
 }
+`
+        : language === "ru"
+        ? `
+${commonRules}
 
-SAFETY RULES:
-- ONLY provide information about real, well-known medicines
-- Include disclaimer about consulting professionals
-- If unsure, return {"found": false}`
+Дайте ОБЩУЮ информацию о лекарстве "${medicineName}".
 
-    const { text } = await generateText({
-      model: "openai/gpt-4-mini",
-      system: systemPrompt,
-      prompt: `Provide educational information about: ${medicineName}`,
-      temperature: 0.2,
-      
-    })
+Объясните по структуре (но верните ответ ТОЛЬКО в формате JSON):
 
-    const result = JSON.parse(text)
-    if (result.found && result.medicine) {
-      const disclaimer =
-        language === "uz"
-          ? "\n\n⚠️ ESLATMA: Bu ta'lim ma'lumatdir. Dori qabul qilishdan oldin doktor yoki fаrmaceut bilan maslahat qiling."
-          : language === "ru"
-            ? "\n\n⚠️ ВНИМАНИЕ: Это образовательная информация. Проконсультируйтесь с врачом или фармацевтом перед приемом."
-            : "\n\n⚠️ DISCLAIMER: This is educational information. Consult a doctor or pharmacist before taking any medicine."
+1. Общая характеристика (что за препарат, к какой группе относится)
+2. Основные показания (при каких симптомах/заболеваниях обычно используется)
+3. Как действует (простым понятным языком)
+4. Наиболее частые побочные эффекты (примеры, без точных процентов)
+5. Предупреждения и меры предосторожности (беременность, аллергия, хронические заболевания и т.п.)
+6. В конце предупредите: "${disclaimer}"
 
-      result.medicine.precautions += disclaimer
+ВАЖНО:
+- НЕ указывайте дозировку, схему приёма и длительность лечения.
+- НЕ назначайте лечение.
+- Ответ должен быть ТОЛЬКО JSON, без пояснений, без markdown.
+
+Формат JSON:
+
+{
+  "name": "Название препарата",
+  "usedFor": "• пункт1\\n• пункт2 ...",
+  "sideEffects": "• пункт1\\n• пункт2 ...",
+  "precautions": "• пункт1\\n• пункт2 ...",
+  "disclaimer": "${disclaimer}"
+}
+`
+        : `
+${commonRules}
+
+Give GENERAL information about the medicine "${medicineName}".
+
+Explain according to this structure (but return ONLY JSON):
+
+1. General description (what the drug is, what group it belongs to)
+2. Main uses (conditions/symptoms it is usually used for)
+3. How it works (simple explanation)
+4. Common side effects (examples only)
+5. Warnings and precautions (pregnancy, allergies, chronic diseases, etc.)
+6. At the end include warning: "${disclaimer}"
+
+IMPORTANT:
+- Do NOT provide dosage, schedule, or duration details.
+- Do NOT prescribe treatment.
+- Answer must be STRICT JSON, no markdown, no comments.
+
+JSON format:
+
+{
+  "name": "Medicine name",
+  "usedFor": "• item1\\n• item2 ...",
+  "sideEffects": "• item1\\n• item2 ...",
+  "precautions": "• item1\\n• item2 ...",
+  "disclaimer": "${disclaimer}"
+}
+`
+
+    const contents = [
+      {
+        role: "user" as const,
+        parts: [{ text: userPrompt }],
+      },
+    ]
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents,
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 600,
+            topP: 0.8,
+            topK: 40,
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_ONLY_HIGH",
+            },
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_ONLY_HIGH",
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH",
+              threshold: "BLOCK_ONLY_HIGH",
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_ONLY_HIGH",
+            },
+          ],
+        }),
+      }
+    )
+
+    if (!res.ok) {
+      const err = await res.text()
+      console.error("Gemini API xatosi (medicine lookup):", err)
+      return NextResponse.json({
+        found: false,
+        response:
+          "Dori haqida hozircha ma’lumot bera olmayapman. Keyinroq urinib ko‘ring.",
+      })
     }
-    return Response.json(result)
+
+    const data = await res.json()
+    let raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+
+    if (!raw) {
+      return NextResponse.json({
+        found: false,
+        response: "Ma’lumot olinmadi. Dori nomini yana bir bor tekshirib yozing.",
+      })
+    }
+
+    // Agar tasodifan ```json ... ``` bilan kelsa — tozalab yuboramiz
+    if (raw.startsWith("```")) {
+      raw = raw.replace(/^```[a-zA-Z]*\n?/, "").replace(/```$/, "").trim()
+    }
+
+    let medicine: Medicine
+
+    try {
+      medicine = JSON.parse(raw)
+
+      // Fallback name, agar model nomni bo'sh tashlab yuborsa
+      if (!medicine.name) {
+        medicine.name = medicineName
+      }
+
+      return NextResponse.json({
+        found: true,
+        medicine,
+      })
+    } catch (e) {
+      console.error("JSON parse xatosi (medicine lookup):", e, raw)
+
+      // JSON bo'lmay qolsa ham, hech bo'lmasa bitta blok qaytaramiz
+      return NextResponse.json({
+        found: true,
+        medicine: {
+          name: medicineName,
+          usedFor: raw,
+          sideEffects: "",
+          precautions: "",
+          disclaimer,
+        },
+      })
+    }
   } catch (error) {
-    console.error("Error:", error)
-    return Response.json({ found: false }, { status: 500 })
+    console.error("Server xatosi (medicine lookup):", error)
+    return NextResponse.json({
+      found: false,
+      response: "Texnik xatolik. Internet yoki server sozlamalarini tekshiring.",
+    })
   }
 }

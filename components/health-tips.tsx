@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { Card } from "@/components/ui/card"
-import type { Language } from "@/lib/i18n"
+import { Card } from "@/components/ui/card";
+import type { Language } from "@/lib/i18n";
 
 interface HealthTipsProps {
-  language: Language
+  language: Language;
 }
 
 const tips: Record<Language, { title: string; items: string[] }> = {
@@ -41,10 +41,10 @@ const tips: Record<Language, { title: string; items: string[] }> = {
       "Wash hands before eating",
     ],
   },
-}
+};
 
 export function HealthTips({ language }: HealthTipsProps) {
-  const tip = tips[language]
+  const tip = tips[language];
 
   return (
     <Card className="p-6 space-y-4 bg-gradient-to-br from-accent/10 to-secondary/10 border-accent/30">
@@ -58,5 +58,5 @@ export function HealthTips({ language }: HealthTipsProps) {
         ))}
       </div>
     </Card>
-  )
+  );
 }

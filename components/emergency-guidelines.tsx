@@ -1,194 +1,274 @@
-"use client"
+"use client";
 
-import { Card } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import type { Language } from "@/lib/i18n"
+import { motion, Variants } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Phone,
+  HeartPulse,
+  AlertTriangle,
+  Siren,
+  Thermometer,
+  Baby,
+  Flame,
+} from "lucide-react";
+import { getTranslation, getData, type Language } from "@/lib/i18n";
 
-interface EmergencyGuidelinesProps {
-  language: Language
-}
-
-const emergencyData: Record<
-  Language,
-  {
-    title: string
-    emergencyTitle: string
-    emergencySigns: string[]
-    firstAidTitle: string
-    firstAidTips: { title: string; steps: string[] }[]
-  }
-> = {
-  uz: {
-    title: "Shoshqaloq va Ogohlantiruvchi Belgilari",
-    emergencyTitle: "Darhol Shifoxonaga Murojaat Qiling:",
-    emergencySigns: [
-      "Tizzdan og'riq yoki qiyshiq nafas olish",
-      "Og'ir jiddiy qon oqishi",
-      "Aqldan ketish yoki bilim yo'qolishi",
-      "Og'ir allergiya reaktsiyalari (muz, qichish)",
-      "Keskin ko'z og'riqlari",
-      "Keskin qorin og'riqlari",
-      "Harorat 40°C dan oshib ketdi va keskin bumiltlangan",
-      "Jinoiy zararlanish",
-    ],
-    firstAidTitle: "Asosiy Birinchi Yordamni",
-    firstAidTips: [
-      {
-        title: "Keskin jiyalash",
-        steps: [
-          "Quruvchi mulfillari bilan o'rah",
-          "Soyada yoki ochiq havoda o'tkazish",
-          "Soyab havo to'g'isida",
-          "Agar harorat 103°F (39.4°C) dan oshsa, shifo'xonaga murojaat qiling",
-        ],
-      },
-      {
-        title: "Minord kesab",
-        steps: [
-          "Yarani toza suvda yuvang",
-          "Steril gazga bosing",
-          "Kerak bo'lsa antibiotic malhami qo'llang",
-          "Agar yarani katta bo'lsa yoki qon kelib chiqsa, tibbiy yordamni qidiring",
-        ],
-      },
-      {
-        title: "Bosh og'rigim",
-        steps: [
-          "Tinch va soyaviy joyda yotting",
-          "Sovuq suv iching yoki kompres qo'llang",
-          "Stressni kamaytiring",
-          "Agar 48 soatdan ko'p bo'lsa yoki o'zgarsa, shifo'xonaga murojaat qiling",
-        ],
-      },
-    ],
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 40 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
   },
-  ru: {
-    title: "Неотложные и Предупреждающие Признаки",
-    emergencyTitle: "Немедленно Обратитесь в Больницу:",
-    emergencySigns: [
-      "Боль в груди или затруднение дыхания",
-      "Сильное кровотечение",
-      "Потеря сознания или спутанность сознания",
-      "Тяжелые аллергические реакции (опухоль, отек горла)",
-      "Острая боль в глазах",
-      "Острая боль в животе",
-      "Температура выше 40°C с ознобом",
-      "Серьезные травмы",
-    ],
-    firstAidTitle: "Основная Первая Помощь",
-    firstAidTips: [
-      {
-        title: "При лихорадке",
-        steps: [
-          "Оберните прохладными тканями",
-          "Отдыхайте в прохладном месте",
-          "Пейте прохладную воду",
-          "При температуре выше 39.4°C обратитесь к врачу",
-        ],
-      },
-      {
-        title: "При небольших ранах",
-        steps: [
-          "Промойте рану чистой водой",
-          "Надавите стерильной марлей",
-          "Нанесите антибактериальную мазь при необходимости",
-          "При больших ранах или кровотечении обратитесь к врачу",
-        ],
-      },
-      {
-        title: "При головной боли",
-        steps: [
-          "Отдыхайте в тихом, прохладном месте",
-          "Пейте воду",
-          "Приложите холодный компресс",
-          "Если боль продолжается более 48 часов, обратитесь к врачу",
-        ],
-      },
-    ],
-  },
-  en: {
-    title: "Emergency and Warning Signs",
-    emergencyTitle: "Seek Immediate Medical Attention For:",
-    emergencySigns: [
-      "Chest pain or difficulty breathing",
-      "Severe bleeding",
-      "Loss of consciousness or confusion",
-      "Severe allergic reactions (swelling, throat closure)",
-      "Sudden vision changes or severe eye pain",
-      "Severe abdominal pain",
-      "Fever above 40°C (104°F) with chills",
-      "Serious injuries or trauma",
-    ],
-    firstAidTitle: "Basic First Aid Guide",
-    firstAidTips: [
-      {
-        title: "For Fever",
-        steps: [
-          "Wrap in cool, damp cloths",
-          "Rest in a cool environment",
-          "Drink cool water or electrolyte solution",
-          "Seek medical help if temperature exceeds 103°F (39.4°C)",
-        ],
-      },
-      {
-        title: "For Minor Wounds",
-        steps: [
-          "Rinse wound with clean water",
-          "Apply pressure with sterile gauze",
-          "Apply antibiotic ointment if available",
-          "Seek help if bleeding is severe or wound is deep",
-        ],
-      },
-      {
-        title: "For Headaches",
-        steps: [
-          "Rest in a quiet, dark room",
-          "Drink water to stay hydrated",
-          "Apply a cold compress to forehead",
-          "Seek medical attention if pain persists beyond 48 hours",
-        ],
-      },
-    ],
-  },
-}
+};
 
-export function EmergencyGuidelines({ language }: EmergencyGuidelinesProps) {
-  const data = emergencyData[language]
+const icons = [
+  HeartPulse,
+  AlertTriangle,
+  Siren,
+  Thermometer,
+  Baby,
+  Flame,
+] as const;
+const iconColors = [
+  "text-red-600",
+  "text-orange-600",
+  "text-red-700",
+  "text-red-600",
+  "text-pink-600",
+  "text-orange-700",
+] as const;
+const iconBgs = [
+  "bg-red-100",
+  "bg-orange-100",
+  "bg-red-100",
+  "bg-red-100",
+  "bg-pink-100",
+  "bg-orange-100",
+] as const;
+
+export function EmergencyGuidelines({ language }: { language: Language }) {
+  const casesData = getData<{ title: string; desc: string }[]>(
+    language,
+    "emergencyPage.cases"
+  );
+  const firstAidData = getData<{ title: string; steps: readonly string[] }[]>(
+    language,
+    "emergencyPage.firstAid"
+  );
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-b  pb-10">
+      <div className=" mx-auto px-4 py-8 space-y-12">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{
+            duration: 0.6,
+            type: "spring",
+            stiffness: 200,
+            damping: 20,
+          }}
+          className="text-center px-4 sm:px-6"
+        >
+          <Button
+            size="lg"
+            className={`
+      w-full 
+      max-w-2xl 
+      mx-auto 
+      h-24 
+      sm:h-28 
+      md:h-32 
+      bg-gradient-to-r from-red-600 to-rose-600 
+      hover:from-red-700 hover:to-rose-700 
+      shadow-2xl 
+      rounded-3xl 
+      animate-pulse 
+      border-4 
+      border-white/70 
+      flex 
+      items-center 
+      justify-center 
+      gap-3 
+      sm:gap-5 
+      transition-all 
+      duration-300
+    `}
+            onClick={() => (window.location.href = "tel:103")}
+          >
+            <Phone
+              className="
+      w-10 h-10 
+      sm:w-14 sm:h-14 
+      md:w-16 md:h-16 
+      lg:w-20 lg:h-20 
+      flex-shrink-0 
+      drop-shadow-lg
+    "
+            />
 
-      <Alert className="border-destructive/50 bg-destructive/10">
-        <AlertTitle className="text-destructive font-semibold">{data.emergencyTitle}</AlertTitle>
-        <AlertDescription>
-          <ul className="space-y-2 mt-3">
-            {data.emergencySigns.map((sign, idx) => (
-              <li key={idx} className="flex gap-2 text-sm">
-                <span className="text-destructive font-bold">•</span>
-                <span>{sign}</span>
-              </li>
-            ))}
-          </ul>
-        </AlertDescription>
-      </Alert>
+            <span
+              className="
+      font-bold 
+      tracking-wider 
+      text-xl 
+      sm:text-xl 
+      md:text-2xl 
+      lg:text-2xl 
+      xl:text-3xl 
+      leading-tight
+      drop-shadow-md
+    "
+            >
+              <span className="block sm:hidden">103 — TEZ YORDAM</span>
 
-      <Card className="p-6 space-y-6 border-accent/30">
-        <h3 className="text-xl font-semibold text-primary">{data.firstAidTitle}</h3>
+              <span className="hidden sm:block">
+                {getTranslation(language, "emergencyPage.callButton")}
+              </span>
+            </span>
+          </Button>
 
-        {data.firstAidTips.map((tip, idx) => (
-          <div key={idx} className="space-y-2 pb-4 border-b border-border last:border-0 last:pb-0">
-            <h4 className="font-medium text-foreground">{tip.title}</h4>
-            <ul className="space-y-1">
-              {tip.steps.map((step, sidx) => (
-                <li key={sidx} className="flex gap-2 text-sm text-muted-foreground">
-                  <span className="text-primary flex-shrink-0">→</span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ul>
+          <p
+            className="
+    mt-5 
+    text-lg 
+    sm:text-xl 
+    md:text-2xl 
+    lg:text-3xl 
+    font-bold 
+    text-red-700 
+    leading-tight 
+    px-4 
+    drop-shadow-sm
+  "
+          >
+            {getTranslation(language, "emergencyPage.callNow")}
+          </p>
+        </motion.div>
+
+        <motion.section
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-red-700 mb-8">
+            {getTranslation(language, "emergencyPage.whenToCall")}
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {casesData.map((item, i) => {
+              const Icon = icons[i];
+              return (
+                <motion.div
+                  key={i}
+                  variants={fadeUp}
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  className="group"
+                >
+                  <Card
+                    className={`p-6 h-full border-2 border-transparent hover:border-red-400 transition-all duration-300 shadow-lg hover:shadow-2xl ${iconBgs[i]} rounded-2xl`}
+                  >
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <div
+                        className={`p-5 rounded-full ${iconBgs[i]} group-hover:scale-110 transition-transform duration-300 shadow-md`}
+                      >
+                        <Icon className={`w-14 h-14 ${iconColors[i]}`} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-800">
+                          {item.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
-        ))}
-      </Card>
+        </motion.section>
+
+        <motion.section
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-emerald-700 mb-8">
+            {getTranslation(language, "emergencyPage.firstAidTitle")}
+          </h2>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {firstAidData.map((aid, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                whileHover={{ y: -6 }}
+                className="group"
+              >
+                <Card className="p-7 shadow-xl hover:shadow-2xl transition-all duration-500 border-0 bg-gradient-to-br from-emerald-50 via-white to-teal-50 rounded-3xl">
+                  <h3 className="text-xl md:text-2xl font-bold text-emerald-800 mb-5 text-center">
+                    {aid.title}
+                  </h3>
+                  <ol className="space-y-4">
+                    {aid.steps.map((step, j) => (
+                      <li key={j} className="flex items-start gap-4">
+                        <Badge className="mt-1 min-w-10 h-10 rounded-full text-lg font-bold bg-emerald-600 text-white shadow-md">
+                          {j + 1}
+                        </Badge>
+                        <span className="text-gray-700 text-base md:text-lg leading-relaxed pt-1">
+                          {step}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center"
+        >
+          <Card className="inline-block p-10 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white shadow-2xl rounded-3xl border-4 border-white/30">
+            <h3 className="text-3xl md:text-4xl font-bold mb-8">
+              {getTranslation(language, "emergencyPage.numbersTitle")}
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-xl md:text-2xl">
+              <div className="space-y-2">
+                <div className="text-5xl font-bold">103</div>
+                <div className="text-lg opacity-90">Tez yordam</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-5xl font-bold">101</div>
+                <div className="text-lg opacity-90">Yong‘in</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-5xl font-bold">102</div>
+                <div className="text-lg opacity-90">Militsiya</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-5xl font-bold">1050</div>
+                <div className="text-lg opacity-90">Zaharlanish</div>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+      </div>
     </div>
-  )
+  );
 }
